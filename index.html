@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
     <title>Daborder's</title>
-    <style>
-        /* Ensure only one section is visible at a time */
-        .section { display: none; }
-        .section.active { display: block; }
-    </style>
+
 </head>
 <body>
         <!-- Login Section --->
@@ -80,21 +77,38 @@
                     </form>
                 </div>
             </div>
-         </div>
+        </div>
 
         <!-- Homepage Section -->
-         <div id="homepage-section" class="section">
-            
+        <div id="homepage-section" class="section">
             <div class="wrapper">
+                <!-- Left Panel -->
                 <div class="left_panel">
-
+                    <img id="logo" src="icon/logo.png" alt="Logo">
+                    <label><a href="#"><img src="icon/dashboard_icon.png" alt="Dashboard"> Dashboard</a></label>
+                    <label><a href="#"><img src="icon/Appointment_icon.png" alt="Appointments"> Appointments</a></label>
+                    <label><a href="#"><img src="icon/Patient_icon.png" alt="Patients"> Patients</a></label>
+                    <label><a href="#"><img src="icon/Personal_icon.png" alt="Personnel Directory"> Personnel Directory</a></label>
+                    <label><a href="#"><img src="icon/Report_icon.png" alt="Reports"> Reports and Analytics</a></label>
+                    <label><a href="#"><img src="icon/Billing_icon.png" alt="Billing"> Billing</a></label>
+                    <label><a href="#"><img src="icon/Inventory_icon.png" alt="Inventory"> Inventory</a></label>
+                    <label><a href="#"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
                 </div>
+    
+                <!-- Right Panel -->
                 <div class="right_panel">
-
+                    <div id="header">
+                        <div id="info">
+                            <p id="fullname">Carlos Sainz</p>
+                            <p id="status">Patient</p>
+                        </div>
+                        <img id="profile_icon" src="img/CarlosID.png" alt="Profile Icon">
+                    </div>
                 </div>
             </div>
+        </div>
 
-         </div>
+        </div>
 
 
          <script>

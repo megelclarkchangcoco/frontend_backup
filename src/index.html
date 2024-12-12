@@ -1,11 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/alert.css">
+    <link rel="stylesheet" href="css/adminhomepage.css">
+    <link rel="stylesheet" href="css/appointment_requests.css">
+    <link rel="stylesheet" href="css/appoinment_listview.css">
+    <link rel="stylesheet" href="css/appointmetn_calendar.css">
+    <link rel="stylesheet" href="css/patient.css">
+
+    <!---JS chart-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!--JS calendar-->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
     <title>Daborder's</title>
 
 </head>
@@ -80,19 +94,15 @@
             </div>
         </div>
 
-        <!-- Homepage Section -->
+        <!-- admin Homepage Section -->
         <div id="homepage-section" class="section">
             <div class="wrapper">
                 <!-- Left Panel -->
                 <div class="left_panel">
                     <img id="logo" src="icon/logo.png" alt="Logo">
-                    <label><a href="#"><img src="icon/dashboard_icon.png" alt="Dashboard"> Dashboard</a></label>
-                    <label><a href="#"><img src="icon/Appointment_icon.png" alt="Appointments"> Appointments</a></label>
-                    <label><a href="#"><img src="icon/Patient_icon.png" alt="Patients"> Patients</a></label>
-                    <label><a href="#"><img src="icon/Personal_icon.png" alt="Personnel Directory"> Personnel Directory</a></label>
-                    <label><a href="#"><img src="icon/Report_icon.png" alt="Reports"> Reports and Analytics</a></label>
-                    <label><a href="#"><img src="icon/Billing_icon.png" alt="Billing"> Billing</a></label>
-                    <label><a href="#"><img src="icon/Inventory_icon.png" alt="Inventory"> Inventory</a></label>
+                    <label><a href="#" onclick="showSection('homepage-section')"><img src="icon/dashboard_icon.png" alt="Dashboard"> Dashboard</a></label>
+                    <label><a href="#" onclick="showSection('appointment-section')"><img src="icon/Appointment_icon.png" alt="Appointments"> Appointments</a></label>
+                    <label><a href="#" onclick="showSection('patient-section')"><img src="icon/Patient_icon.png" alt="Patients"> Patients</a></label>
                     <label><a href="#" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
                 </div>
     
@@ -106,35 +116,429 @@
                         <img id="profile_icon" src="img/default_profile.png" alt="Profile Icon">
                     </div>
 
-                    <!-- to do-->
-                    <div id="dashboard-section" class="#">
-                        <h3>Dashboard</h3>
-                    </div>
-                    <div id="appointment-section" class="#">
-                        <h3>Appointment</h3>
-                    </div>
-                    <div id="patients-section" class="#">
-                        <h3>Patients</h3>
-                    </div>
-                    <div id="personal-section" class="#">
-                        <h3>Personal</h3>
-                    </div>
-                    <div id="report-section" class="#">
-                        <h3>Report</h3>
-                    </div>
-                    <div id="billing-section" class="#">
-                        <h3>Billing</h3>
-                    </div>
-                    <div id="inventory-section" class="#">
-                        <h3>Inventory</h3>
+                    <div class="main_content">
+                        <h1>Dashboard</h1>
+                        <p>October 18, 2024 &nbsp;&nbsp; 09:32:07 AM</p>
+                    
+                        <div class="content_wrapper">
+                            <div class="stats_and_income">
+                                <div class="stats">
+                                    <div class="stat">
+                                        <h2>₱5,310,000</h2>
+                                        <p>Total Income</p>
+                                    </div>
+                                    <div class="stat">
+                                        <h2>7</h2>
+                                        <p>Number of equipment that needs restocking</p>
+                                    </div>
+                                    <div class="stat">
+                                        <h2>39</h2>
+                                        <p>Equipment available</p>
+                                    </div>
+                                    <div class="stat">
+                                        <h2>12</h2>
+                                        <p>Expired consumables</p>
+                                    </div>
+                                </div>
+                    
+                                <div class="income_distribution">
+                                    <h3>Income Distribution</h3>
+                                    <div id="chart-container" class="chart-contaienr">
+                                        <button class="chart-button" onclick="showChart('yearly', this)">Yearly</button>
+                                        <button class="chart-button" onclick="showChart('monthly', this)">Monthly</button>
+                                        <button class="chart-button" onclick="showChart('weekly', this)">Weekly</button>
+                                        <canvas id="incomeChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <div class="kpi">
+                                <h3>KEY PERFORMANCE INDICATOR</h3>
+                                <div class="kpi-item">
+                                    <p>156</p>
+                                    <p>Registered dentists</p>
+                                </div>
+                                <div class="kpi-item">
+                                    <p>13</p>
+                                    <p>Dental assistants on duty</p>
+                                </div>
+                                <div class="kpi-item">
+                                    <p>120</p>
+                                    <p>Available staffs</p>
+                                </div>
+                                <div class="kpi-item">
+                                    <p>12,234</p>
+                                    <p>Patients</p>
+                                </div>
+                                <div class="kpi-item">
+                                    <p>34</p>
+                                    <p>Pending patients</p>
+                                </div>
+                                <div class="kpi-item">
+                                    <p>23</p>
+                                    <p>New Patient Registrations (This Month)</p>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <div class="details">
+                                <div class="top5_appointment_types">
+                                    <h3>Top 5 Most Requested Appointment Types</h3>
+                                    <p>1. Routine Check-up: 48 appointments</p>
+                                    <p>2. Cleaning: 32 appointments</p>
+                                    <p>3. Consultation: 20 appointments</p>
+                                    <p>4. Follow-up: 15 appointments</p>
+                                    <p>5. Surgical Procedure: 10 appointments</p>
+                                </div>
+                                <div class="request_order">
+                                    <h3>Request Order</h3>
+                                    <p>1. Composite Filling Kits</p>
+                                    <p>2. Mouth Rinses</p>
+                                    <p>3. Dental Cements</p>
+                                    <p>4. Dental Bibs</p>
+                                    <p>5. Latex Gloves</p>
+                                    <p>6. Cotton Rolls</p>
+                                </div>
+                                <div class="top5_used_items">
+                                    <h3>Top 5 Used Items</h3>
+                                    <p>1. Latex Gloves: 540 units</p>
+                                    <p>2. Cotton Rolls: 300 units</p>
+                                    <p>3. Disposable Masks: 250 units</p>
+                                    <p>4. Dental Bibs: 200 units</p>
+                                    <p>5. Anesthetic Cartridges: 150 units</p>
+                                </div>
+                                <div class="usage_category">
+                                    <h3>Usage by Category (Monthly):</h3>
+                                    <p>Consumables: 275 usages</p>
+                                    <p>Apparatus: 115 usages</p>
+                                    <p>Large Equipment: 60 usages</p>
+                                </div>
+                            </div>
+                        </div>
+                    
                     </div>
                 </div>
             </div>
+
+            <!-- admin appointment page -->
+            <div id="appointment-section" class="section">
+                <div class="appointment_wrapper">
+                    <!-- Left Panel -->
+                    <div class="appointmet_left_panel">
+                        <img id="logo" src="icon/logo.png" alt="Logo">
+                        <label><a href="#" onclick="showSection('homepage-section')"><img src="icon/dashboard_icon.png" alt="Dashboard"> Dashboard</a></label>
+                        <label><a href="#" onclick="showSection('appointment-section')"><img src="icon/Appointment_icon.png" alt="Appointments"> Appointments</a></label>
+                        <label><a href="#" onclick="showSection('patient-section')"><img src="icon/Patient_icon.png" alt="Patients"> Patients</a></label>
+                        <label><a href="#" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
+                    </div>
+
+                    <!-- Right Panel -->
+                    <div class="appointment_right_panel">
+                        <div id="appointment_header">
+                            <div class="sub-navigation">
+                                <a href="#" onclick="showRightPanelSection('request_section')">Request</a>
+                                <a href="#" onclick="showRightPanelSection('list_view_section')">List View</a>
+                                <a href="#" onclick="showRightPanelSection('calendar_view_section')">Calendar View</a>
+                            </div>
+                            <div id="appointment_info">
+                                <p id="appointment_fullname">Carlos Sainz</p>
+                                <p id="appointment_status">Patient</p>
+                            </div>
+                            <img id="appointment_profile_icon" src="img/default_profile.png" alt="Profile Icon">
+                        </div>
+                        <!-- request sectio-->
+                        <div id="request_section" class="section">
+
+                             <!-- Request  sections -->
+                            <div class="main_content">
+                                <h1>Appointment Requests</h1>
+                                <div class="search_filter">
+                                    <input type="text" placeholder="Search appointments" class="search-bar">
+                                    <button class="search_button">SEARCH</button>
+                                    <button class="filter_button">FILTER</button>
+                                </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Patient ID</th>
+                                            <th>Patient Name</th>
+                                            <th>Payment Type</th>
+                                            <th>Payment Status</th>
+                                            <th>Requested Date</th>
+                                            <th>Requested Time</th>
+                                            <th>Date of Request</th>
+                                            <th>Requested Dentist</th>
+                                            <th>Reason for Booking the Appointment</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>PAT00181</td>
+                                            <td>Amelia V. Santos</td>
+                                            <td>Cash on-site</td>
+                                            <td class="actions">
+                                                <button class="status-pendings">Pendings</button>
+                                                <button class="status-approve">Paid</button>
+                                            </td>
+                                            <td>2024-11-02</td>
+                                            <td>09:00 AM - 10:00 AM</td>
+                                            <td>2024-10-20</td>
+                                            <td>Dr. Evan J. Santos</td>
+                                            <td>Regular cleaning</td>
+                                            <td class="actions">
+                                                <button class="approve">Approve</button>
+                                                <button class="move">Move</button>
+                                                <button class="cancel">Cancel</button>
+                                            </td>
+                                        </tr>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- List View Sectio-->
+                        <div id="list_view_section" class="section">
+                            <div class="main_content">
+                                <h1>Appointment List</h1>
+                                <div class="search_filter">
+                                    <input type="text" placeholder="Search appointments" class="search-bar">
+                                    <button class="search_button">SEARCH</button>
+                                    <button class="filter_button">FILTER</button>
+                                </div>
+                                <table class="appointments-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Patient ID</th>
+                                            <th>Patient Name</th>
+                                            <th>Payment Type</th>
+                                            <th>Payment Status</th>
+                                            <th>Requested Date</th>
+                                            <th>Requested Time</th>
+                                            <th>Date of Request</th>
+                                            <th>Requested Dentist</th>
+                                            <th>Appointment Status</th>
+                                            <th>Reason for Booking</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>PAT0081</td>
+                                            <td>Amelia V. Santos</td>
+                                            <td>Cash on-site</td>
+                                            <td class="actions">
+                                                <button class="status-pendings">Pendings</button>
+                                                <button class="status-approve">Paid</button>
+                                            </td>    
+                                            <td>2024-11-02</td>
+                                            <td>09:00 AM - 10:00 AM</td>
+                                            <td>2024-10-20</td>
+                                            <td>Dr. Evan J. Santos</td>
+                                            <td class="actions">
+                                                <button class="approve">Completed</button>
+                                                <button class="move">Upcomming</button>
+                                                <button class="cancel">Canceled</button>
+                                            </td>
+                                            <td>Regular cleaning</td>
+                                            <td>
+                                                <button class="cancel-btn">Cancel</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                
+
+                        <!-- Calendar View Section -->
+                        <div id="calendar_view_section" class="section">
+                            <h2>Calendar View</h2>
+                            <div id="calendar">
+                            </div>
+
+                        </div>
+                      
+                    </div>
+                </div>
+            </div>
+
+            <div id="patient-section" class="section">
+                <div class="wrapper">
+                    <!-- Left Panel -->
+                    <div class="left_panel">
+                        <img id="logo" src="icon/logo.png" alt="Logo">
+                        <label><a href="#" onclick="showSection('homepage-section')"><img src="icon/dashboard_icon.png" alt="Dashboard"> Dashboard</a></label>
+                        <label><a href="#" onclick="showSection('appointment-section')"><img src="icon/Appointment_icon.png" alt="Appointments"> Appointments</a></label>
+                        <label><a href="#" onclick="showSection('patient-section')"><img src="icon/Patient_icon.png" alt="Patients"> Patients</a></label>
+                        <label><a href="#" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
+                    </div>
+        
+                    <!-- Right Panel -->
+                    <div class="right_panel">
+                        <div id="header">
+                            <div id="info">
+                                <p id="fullname">Carlos Sainz</p>
+                                <p id="status">Patient</p>
+                            </div>
+                            <img id="profile_icon" src="img/default_profile.png" alt="Profile Icon">
+                        </div>
+                        <div id="content_panel">
+                            <div class="search-bar">
+                                <h1 style="color: hsl(22, 62%, 50%); font-size: 24px;  margin-bottom: 20px;">Patient Info</h1>
+                                <div class="search_filter">
+                                    <input type="text" placeholder="Search appointments" class="search-bar">
+                                    <button class="search_button">SEARCH</button>
+                                    <button class="filter_button">FILTER</button>
+                                </div>
+                            </div>  
+                            <main>
+                                <div class="patient-content">
+                                    <table class="table table-striped">
+                                      <thead>
+                                        <tr>
+                                          <th>Patient ID</th>
+                                          <th>Patient Name</th>
+                                          <th>Sex</th>
+                                          <th>Age</th>
+                                          <th>Contact Details</th>
+                                          <th>Email</th>
+                                          <th>Action</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        <tr>
+                                          <td>PAT00123</td>
+                                          <td>Amanda R. Flores</td>
+                                          <td>F</td>
+                                          <td>34</td>
+                                          <td>0930-555-0123</td>
+                                          <td>amanda@gmail.com</td>
+                                          <td>
+                                            <div class="btn-group">
+                                              <button class="btn btn-info" onclick="openModal('viewModal')">View</button>
+                                              <button class="btn btn-warning" onclick="openModal('editModal')">Edit</button>
+                                              <button class="btn btn-danger" onclick="openModal('deleteModal')">Delete</button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  
+                                
+                                    <!-- View Modal -->
+                                    <div id="viewModal" class="modal">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5>View Patient</h5>
+                                                <span class="close" onclick="closeModal('viewModal')">&times;</span>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="profile-picture">
+                                                    <img id="profile-image" src="#" alt="Profile Picture" width="100" height="100">
+                                                </div>
+                                                <form>
+                                                    <label>Patient Name:</label>
+                                                    <input type="text" value="Amanda R. Flores"><br><br>
+                                    
+                                                    <label>Sex:</label>
+                                                    <select>
+                                                        <option selected>F</option>
+                                                        <option>M</option>
+                                                    </select><br><br>
+                                    
+                                                    <label>Age:</label>
+                                                    <input type="number" value="34"><br><br>
+                                    
+                                                    <label>Contact Details:</label>
+                                                    <input type="text" value="0930-555-0123"><br><br>
+                                    
+                                                    <label>Email:</label>
+                                                    <input type="email" value="amanda@gmail.com"><br><br>
+                                    
+                                                    <label>Password:</label>
+                                                    <input type="password" value="password123"><br>
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-secondary" onclick="closeModal('viewModal')">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                    <!-- Edit Modal -->
+                                    <div id="editModal" class="modal">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5>Edit Patient</h5>
+                                                <span class="close" onclick="closeModal('editModal')">&times;</span>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="profile-picture">
+                                                    <img id="profile-image" src="#" alt="Profile Picture" width="100" height="100">
+                                                    <div class="file-input">
+                                                        <input type="file" id="profile-file" onchange="updateProfileImage(this)" style="display: none;">
+                                                        <label for="profile-file" class="btn btn-secondary">Choose File</label>
+                                                    </div>
+                                                </div>
+                                                <form>
+                                                    <label>Patient Name:</label>
+                                                    <input type="text" value="Amanda R. Flores"><br><br>
+                                
+                                                    <label>Sex:</label>
+                                                    <select>
+                                                        <option selected>F</option>
+                                                        <option>M</option>
+                                                    </select><br><br>
+                                
+                                                    <label>Age:</label>
+                                                    <input type="number" value="34"><br><br>
+                                
+                                                    <label>Contact Details:</label>
+                                                    <input type="text" value="0930-555-0123"><br><br>
+                                
+                                                    <label>Email:</label>
+                                                    <input type="email" value="amanda@gmail.com"><br><br>
+                                
+                                                    <label>Password:</label>
+                                                    <input type="password" value="password123"><br>
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-secondary" onclick="closeModal('editModal')">Close</button>
+                                                <button class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                
+                                    <!-- Delete Modal -->
+                                    <div id="deleteModal" class="modal">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5>Delete Patient</h5>
+                                                <span class="close" onclick="closeModal('deleteModal')">&times;</span>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete this patient?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">No</button>
+                                                <button class="btn btn-danger">Yes</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </main>    
+                        </div>
+                    </div>    
+
+                </div>       
+            </div>
+            
+            
+            
         </div>
 
-        </div>
-
-
+        <!-- Script for  display div in one frame-->
          <script>
             // Function to display a specific section and hide others
             function showSection(sectionId) {
@@ -150,6 +554,159 @@
                     showSection('login-section'); // switch to the login
                 }
         </script>
+        
+        <!-- Script for display div in one frame (Appointment Section Specific) -->
+        <script>
+            // Function to display a specific section inside the right panel and hide others
+            function showRightPanelSection(sectionId) {
+                // Hide all sections in the right panel
+                const sections = document.querySelectorAll('.appointment_right_panel .section');
+                sections.forEach(section => {
+                    section.style.display = 'none'; // Hide each section
+                });
+        
+                // Show the selected section inside the right panel
+                const selectedSection = document.getElementById(sectionId);
+                if (selectedSection) {
+                    selectedSection.style.display = 'block'; // Show the selected section
+                }
+            }
+        
+            // Initialize the sections to be hidden on page load and show the first section (Request)
+            window.onload = function() {
+                // function to hide all sections initially in the right panel
+                const sections = document.querySelectorAll('.appointment_right_panel .section');
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+        
+                // function to show the default section (Request section)
+                const defaultSection = document.getElementById('request_section');
+                if (defaultSection) {
+                    defaultSection.style.display = 'block';
+                }
+            }
+        </script>
+        
+
+        
+
+        <!-- Script for chart-->>
+        <script>
+                    const ctx = document.getElementById('incomeChart').getContext('2d');
+                    let incomeChart;
+            
+                    const data = {
+                        yearly: {
+                            labels: ['2018', '2019', '2020', '2021', '2022'],
+                            datasets: [{
+                                label: 'Yearly Income',
+                                data: [50000, 55000, 60000, 65000, 70000],
+                                backgroundColor: 'skyblue'
+                            }]
+                        },
+                        monthly: {
+                            labels: ['2018', '2019', '2020', '2021', '2022'],
+                            datasets: [{
+                                label: 'Monthly Income',
+                                data: [50000 / 12, 55000 / 12, 60000 / 12, 65000 / 12, 70000 / 12],
+                                backgroundColor: 'lightgreen'
+                            }]
+                        },
+                        weekly: {
+                            labels: ['2018', '2019', '2020', '2021', '2022'],
+                            datasets: [{
+                                label: 'Weekly Income',
+                                data: [50000 / 52, 55000 / 52, 60000 / 52, 65000 / 52, 70000 / 52],
+                                backgroundColor: 'lightcoral'
+                            }]
+                        }
+                    };
+            
+                    function showChart(period) {
+                        if (incomeChart) {
+                            incomeChart.destroy();
+                        }
+                        incomeChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: data[period],
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
+                        });
+                    }
+            
+                    // Show yearly chart by default
+                    showChart('yearly');
+                </script>
+
+        <!-- Script for js calendar-->
+        <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                var calendarEl = document.getElementById('calendar');
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: [
+                        {
+                            title: 'General dental checkup',
+                            start: '2024-12-20T09:00:00',
+                            end: '2024-12-20T10:00:00'
+                        },
+                        {
+                            title: 'Appointment 2',
+                            start: '2024-12-04T10:00:00',
+                            end: '2024-12-04T11:00:00'
+                        },
+                        {
+                            title: 'Appointment 3',
+                            start: '2024-12-06T10:00:00',
+                            end: '2024-12-06T11:00:00'
+                        },
+                        {
+                            title: 'Appointment 4',
+                            start: '2024-12-07T11:00:00',
+                            end: '2024-12-07T12:00:00'
+                        },
+                        {
+                            title: 'Appointment 5',
+                            start: '2024-12-09T12:00:00',
+                            end: '2024-12-09T13:00:00'
+                        },
+                        {
+                            title: 'Appointment 6',
+                            start: '2024-12-11T13:00:00',
+                            end: '2024-12-11T14:00:00'
+                        },
+                        {
+                            title: 'Appointment 7',
+                            start: '2024-12-12T13:00:00',
+                            end: '2024-12-12T14:00:00'
+                        }
+                    ]
+                });
+                calendar.render();
+            });
+        </script>
          
+         <!--JS for modal-->
+         <script>
+            function openModal(id) {
+                document.getElementById(id).style.display = "block";
+            }
+    
+            function closeModal(id) {
+                document.getElementById(id).style.display = "none";
+            }
+        </script>
 </body>
 </html>

@@ -1,0 +1,132 @@
+.patient-content {
+    font-family: Arial, sans-serif;
+}
+
+.patient-content table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.patient-content th, .patient-content td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.patient-content th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.patient-content .btn {
+    display: inline-block;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 2px;
+    width: auto;
+    text-align: center;
+}
+
+.patient-content .btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.patient-content .btn-warning {
+    background-color: #ffc107;
+    color: black;
+}
+
+.patient-content .btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.patient-content .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.patient-content .modal-content {
+    background-color: #fff;
+    margin: 5% auto; /* Adjusted from 10% to 5% to move it higher */
+    padding: 20px;
+    border-radius: 8px;
+    width: 40%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.patient-content .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.patient-content .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+}
+
+.patient-content .close {
+    font-size: 20px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.patient-content .close:hover {
+    color: black;
+}
+
+.patient-content input, .patient-content select {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: left; /* Align text to the left */
+}
+
+.patient-content .profile-picture {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.patient-content .profile-picture img {
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.patient-content .profile-picture input[type="file"] {
+    font-size: 14px;
+}
+
+.file-input label {
+    display: inline-block;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #6c757d;
+    color: white;
+}
+
+.file-input label:hover {
+    background-color: #5a6268;
+}

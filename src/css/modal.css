@@ -1,0 +1,103 @@
+.modal {
+    display: none; /* Use flexbox for centering */
+    position: fixed; /* Ensure modal is fixed to the viewport */
+    top: 0; /* Set top to 0 to align with the viewport */
+    left: 0; /* Set left to 0 to align with the viewport */
+    width: 100%; /* Full width to cover the viewport */
+    height: 100%; /* Full height to cover the viewport */
+    background-color: rgba(0, 0, 0, 0.5); /* Dimmed background */
+    z-index: 1000; /* Ensure it is on top of other elements */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+.modal-content {
+    background: white; /* White background for the modal content */
+    padding: 20px; /* Padding for spacing inside the modal */
+    border-radius: 8px; /* Rounded corners */
+    max-width: 1000px; /* Maximum width of the modal */
+    width: 90%; /* Responsive width */
+    text-align: center; /* Center the text */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for better visibility */
+}
+
+
+.modal-content h2 {
+    margin-bottom: 20px;
+    color: #2c4964; /* Match the blue-gray text color */
+    font-family: 'Arial', sans-serif; /* Ensure the font family matches */
+    font-weight: bold;
+    font-size: 2rem; /* Increase size for a bold heading */
+    text-align: left;
+    padding-left: 50px;
+
+}
+
+.modal-content p {
+    font-size: 1.2rem; /* Adjust for larger text */
+    margin-bottom: 15px;
+    color: #2c4964; /* Match the blue-gray text color */
+    font-weight: bold; /* Make it stand out */
+    text-align: left;
+    padding-left: 50px;
+
+}
+
+.modal-content label {
+    font-size: 1.1rem; /* Adjust size for radio button labels */
+    color: #2c4964; /* Match the blue-gray color */
+    display: flex; /* Align text with radio buttons */
+    align-items: center;
+    margin-bottom: 5px; /* Add spacing between options */
+    padding-left: 50px;
+
+}
+
+.modal-content label input[type="radio"] {
+    margin-right: 10px; /* Space between radio button and text */
+    accent-color: #2c4964; /* Blue-gray for the radio button */
+    transform: scale(1.2); /* Enlarge the radio button */
+    padding-left: 30px;
+
+}
+
+.modal-content textarea {
+    width: 90%;
+    height: 80px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 1rem;
+    background-color: #f8fcff; /* Slight light blue background */
+    color: #2c4964; /* Text color */
+}
+
+.modal-content button {
+    background-color: #2c4964; /* Match the dark blue color */
+    color: white;
+    padding: 10px 30px; /* Increase padding for a larger button */
+    border: none;
+    border-radius: 50px; /* Rounded button */
+    font-size: 1.2rem; /* Slightly larger text */
+    cursor: pointer;
+    transition: 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Add shadow for depth */
+    float: right;
+    text-align: right;
+}
+
+.modal-content button:hover {
+    background-color: #1a3a56; /* Darker blue on hover */
+}
+
+.modal-content .close {
+    font-size: 1rem;
+    color: #2c4964; /* Match the blue-gray text color */
+    cursor: pointer;
+    display: block;
+    text-align: left;
+    margin-bottom: 20px;
+    font-weight: bold;
+}

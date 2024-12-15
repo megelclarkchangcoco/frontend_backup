@@ -136,6 +136,63 @@ body {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
+ .success-alert {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 24px 32px;
+    text-align: center;
+    z-index: 9999;
+    width: 400px;
+}
+
+
+
+ .success-alert .icon {
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-bottom: 16px;
+    position: relative;
+}
+
+
+
+.success-alert .icon {
+    background-color: #4CAF50;
+}
+ .success-alert h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+ .success-alert button {
+    background-color: #f44336;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.success-alert button {
+    background-color: #4CAF50;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+
+
 /* Media Queries */
 @media screen and (max-width: 1024px) {
     .left_panel {

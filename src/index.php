@@ -1,3 +1,291 @@
+<?php
+
+session_start(); 
+
+// Initialize database connection
+$connection = mysqli_connect("localhost", "root", "", "abesamis_db");
+
+if (!$connection) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+// Initialize variables
+$alert = [];
+$success = false;
+$active_section = 'register-section';
+
+// Handle form submission
+if (isset($_POST['submit'])) {
+    // Generate unique ID for admin
+    $ran_id = rand(time(), 1000000000);
+
+    // Sanitize inputs
+    $firstname = mysqli_real_escape_string($connection, trim($_POST['firstname']));
+    $lastname = mysqli_real_escape_string($connection, trim($_POST['lastname']));
+    $email = mysqli_real_escape_string($connection, trim($_POST['email']));
+    $contact = mysqli_real_escape_string($connection, trim($_POST['contact']));
+    $gender = mysqli_real_escape_string($connection, trim($_POST['gender']));
+    $password = mysqli_real_escape_string($connection, trim($_POST['password']));
+    $cpassword = mysqli_real_escape_string($connection, trim($_POST['cpassword']));
+
+    // Validate email
+    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        // Validate image upload
+        $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
+        $image = $_FILES['image']['name'];
+        $image_size = $_FILES['image']['size'];
+        $image_tmp_name = $_FILES['image']['tmp_name'];
+        $image_type = $_FILES['image']['type'];
+        $image_rename = uniqid() . "_" . basename($image);
+        $image_folder = 'img/' . $image_rename;
+
+        if (!in_array($image_type, $allowed_types)) {
+            $alert[] = "Invalid image format!";
+        } elseif ($image_size > 2000000) {
+            $alert[] = "Image size is too large!";
+        } elseif ($password !== $cpassword) {
+            $alert[] = "Passwords do not match!";
+        } else {
+            // Check if email already exists
+            $stmt = $connection->prepare("SELECT * FROM admin WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows > 0) {
+                $alert[] = "User already exists!";
+            } else {
+                // Hash the password
+                $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+
+                // Insert user data into the database
+                $stmt = $connection->prepare("INSERT INTO admin(id, firstname, lastname, email, contact, password, gender, img) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("isssssss", $ran_id, $firstname, $lastname, $email, $contact, $hashed_password, $gender, $image_rename);
+
+                if ($stmt->execute()) {
+                    move_uploaded_file($image_tmp_name, $image_folder);
+                    $success = true;
+                } else {
+                    $alert[] = "Database error: " . $connection->error;
+                }
+            }
+        }
+    } else {
+        $alert[] = "$email is not a valid email!";
+    }
+}
+
+
+   // Handle login form submission
+    if (isset($_POST['login_submit'])) {
+        $email = mysqli_real_escape_string($connection, trim($_POST['email']));
+        $password = trim($_POST['password']);
+
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            // Fetch user from the database
+            $stmt = $connection->prepare("SELECT * FROM admin WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+
+                if (password_verify($password, $row['password'])) {
+                    // Store user data in session
+                    $_SESSION['id'] = $row['id'];                
+                    $_SESSION['firstname'] = $row['firstname'];  
+                    $_SESSION['lastname'] = $row['lastname'];    
+                    $_SESSION['email'] = $email;                 
+                    $_SESSION['img'] = $row['img'];              
+
+                    // Combine firstname and lastname for fullname
+                    $fullname = $_SESSION['firstname'] . ' ' . $_SESSION['lastname'];
+
+                    // Set the profile image path
+                    $profile_img = isset($_SESSION['img']) ? 'img/' . $_SESSION['img'] : 'icon/default_profile.png';
+
+                    // Update user status to "Active Now"
+                    $status = 'Active Now';
+                    $update_stmt = $connection->prepare("UPDATE admin SET status = ? WHERE id = ?");
+                    $update_stmt->bind_param("si", $status, $row['id']);
+                    $update_stmt->execute();
+
+                    // Redirect to homepage after successful login
+                    header("Location: index.php#homepage-section");
+                    exit;
+                } else {
+                    $alert[] = "Incorrect password!";
+                }
+            } else {
+                $alert[] = "No user found with this email!";
+            }
+        } else {
+            $alert[] = "$email is not a valid email!";
+        }
+    }
+
+    // Ensure session variables exist before using them
+    $fullname = isset($_SESSION['firstname']) && isset($_SESSION['lastname']) 
+        ? $_SESSION['firstname'] . ' ' . $_SESSION['lastname'] 
+        : 'Guest';
+
+    $profile_img = isset($_SESSION['img']) ? 'img/' . $_SESSION['img'] : 'icon/default_profile.png'; 
+
+    // Check if the user is logged in
+    if (!isset($_SESSION['id'])) {
+        $active_section = 'login-section'; // Activate the login section if not logged in
+    } else {
+        $active_section = 'homepage-section'; // Activate the homepage section if logged in
+    }
+ 
+    // Logout Handling
+    if (isset($_GET['logout'])) {
+        // Destroy the session and unset all session variables
+        session_unset();
+        session_destroy();
+        
+        // Redirect to login page after logout
+        header("Location: index.php#login-section"); // Redirect to the login section
+        exit;
+    }
+
+ 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['patient_id']) && isset($_POST['action'])) {
+        $patient_id = $_POST['patient_id'];
+        $action = $_POST['action'];
+        $reason = $_POST['cancel_reason'] ?? '';
+
+        // Log incoming data for debugging
+        error_log("Received POST Data:");
+        error_log("Patient ID: " . $patient_id);
+        error_log("Action: " . $action);
+        error_log("Reason: " . $reason);
+
+        try {
+            // Begin transaction for atomicity
+            $connection->begin_transaction();
+
+            // First, retrieve full details from appointment_request
+            $stmt_select = $connection->prepare(
+                "SELECT * FROM appointment_request WHERE patient_id = ?"
+            );
+            
+            if ($stmt_select === false) {
+                throw new Exception("Prepare statement failed for select: " . $connection->error);
+            }
+
+            $stmt_select->bind_param("s", $patient_id);
+            $stmt_select->execute();
+            $result = $stmt_select->get_result();
+            
+            if ($result->num_rows === 0) {
+                throw new Exception("No appointment request found for patient ID: " . $patient_id);
+            }
+            
+            $appointment_details = $result->fetch_assoc();
+
+            // Log retrieved appointment details
+            error_log("Retrieved Appointment Details:");
+            error_log(print_r($appointment_details, true));
+
+            // Prepare insert statement for appointment_list
+            $stmt_insert = $connection->prepare(
+                "INSERT INTO appointment_list (
+                    patient_id, patient_name, payment_type, payment_status, 
+                    requested_date, requested_time, date_of_request, 
+                    requested_dentist, reason_for_booking, appointment_status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+
+            if ($stmt_insert === false) {
+                throw new Exception("Prepare statement failed for insert: " . $connection->error);
+            }
+
+            $status = ($action == 'approve') ? 'Approved' : 'Canceled';
+
+            $stmt_insert->bind_param(
+                "ssssssssss", 
+                $patient_id,
+                $appointment_details['patient_name'],
+                $appointment_details['payment_type'],
+                $appointment_details['payment_status'],
+                $appointment_details['requested_date'],
+                $appointment_details['requested_time'],
+                $appointment_details['date_of_request'],
+                $appointment_details['requested_dentist'],
+                $appointment_details['reason_for_booking'],
+                $status
+            );
+
+            // Execute insert
+            $insert_result = $stmt_insert->execute();
+            if (!$insert_result) {
+                throw new Exception("Insert failed: " . $stmt_insert->error);
+            }
+
+            // Delete from appointment_request
+            $stmt_delete = $connection->prepare("DELETE FROM appointment_request WHERE patient_id = ?");
+            
+            if ($stmt_delete === false) {
+                throw new Exception("Prepare statement failed for delete: " . $connection->error);
+            }
+
+            $stmt_delete->bind_param("s", $patient_id);
+            $delete_result = $stmt_delete->execute();
+
+            if (!$delete_result) {
+                throw new Exception("Delete failed: " . $stmt_delete->error);
+            }
+
+            // Commit transaction
+            $connection->commit();
+
+            // Return success response
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status' => 'success', 
+                'message' => "Appointment " . ucfirst($action) . "d successfully"
+            ]);
+        } catch (Exception $e) {
+            // Rollback transaction in case of error
+            $connection->rollback();
+            
+            // Log the full error
+            error_log("Full Error Details: " . $e->getMessage());
+            error_log("Trace: " . $e->getTraceAsString());
+
+            // Return error response
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error', 
+                'message' => "Error processing appointment: " . $e->getMessage()
+            ]);
+        }
+    } else {
+        // Log missing parameters
+        error_log("Missing patient_id or action in POST data");
+        header('Content-Type: application/json');
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error', 
+            'message' => "Missing required parameters"
+        ]);
+    }
+
+    // Ensure script stops after processing
+    exit();
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -11,6 +299,7 @@
     <link rel="stylesheet" href="css/appoinment_listview.css">
     <link rel="stylesheet" href="css/appointmetn_calendar.css">
     <link rel="stylesheet" href="css/patient.css">
+    <link rel="stylesheet" href="css/modal.css">
 
     <!---JS chart-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -25,26 +314,33 @@
 </head>
 <body>
         <!-- Login Section --->
-        <div id="login-section" class="section active">
-            <div class="header">
+        <div id="login-section" class="section <?php echo ($active_section == 'login-section') ? 'active' : ''; ?>">
+        <div class="header">
                 <img src="icon/logo.png" alt="">
             </div>
             <div class="container">
                 <div class="background-overlay"></div>
                 <div class="form-container">
-                    <form action="" class="" enctype="multipart/form-data">
+                    <form action="" method="POST">
                         <div class="tabs">
                             <a href="#" class="active" onclick="showSection('login-section')">SIGN IN</a>
                             <a href="#" onclick="showSection('register-section')">SIGN UP</a>
                         </div>
                         <h3>Sign in to your Account</h3>
-                        <p class="subtitle">Book an appointment and access medical records, anytime, anywhare.</p>
+                        <p class="subtitle">Book an appointment and access medical records, anytime, anywhere.</p>
                         <div class="input-group">
-                            <h3 class="alert">Invalid Account</h3>
-                           <input type="email" name="email" placeholder="Email" class="box" required>
-                           <input type="password" name="password" placeholder="Password" class="box" required>
+                            <!-- Display alert messages -->
+                            <?php 
+                            if (!empty($alert)) {
+                                foreach ($alert as $message) {
+                                    echo '<h3 class="alert">' . htmlspecialchars($message) . '</h3>';
+                                }
+                            }
+                            ?>
+                            <input type="email" name="email" placeholder="Email" class="box" required>
+                            <input type="password" name="password" placeholder="Password" class="box" required>
                         </div>
-                        <button type="button" name="submit" class="btn" onclick="showSection('homepage-section')">Submit</button>
+                        <button type="submit" name="login_submit" class="btn">Submit</button>
                         <div class="footer-links">
                             <a href="#">Privacy Policy</a>
                             <a href="#">Terms of Use</a>
@@ -53,6 +349,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- Register Section -->
          <div id="register-section" class="section">
@@ -70,7 +367,22 @@
                         <h3>Create Account</h3>
                         <p class="register-subtitle">Book an appointment and access medical records, anytime, anywhare</p>
                         <div class="register-input-group">
-                            <h3 class="register-alert">Register Failed</h3>
+                             <!-- Display error alerts -->
+                             <?php if (!empty($alert)): ?>
+                                <?php foreach ($alert as $message): ?>
+                                    <h3 class="register-alert"><?php echo $message; ?></h3>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+
+                            <!-- Success alert -->
+                            <?php if ($success): ?>
+                                <div class="success-alert" id="successAlert">
+                                    <div class="icon"></div>
+                                    <h2>Registration Successful!</h2>
+                                    <p>Your account has been created!</p>
+                                    <button type="button" onclick="proceedToLogin()">OK</button>
+                                </div>
+                            <?php endif; ?>
                             <input type="text" name="firstname" placeholder="Enter First Name" class="box" required>
                             <input type="text" name="lastname" placeholder="Enter Last Name" class="box" required>
                             <input type="email" name="email" placeholder="Enter Email" class="box" required>
@@ -95,7 +407,12 @@
         </div>
 
         <!-- admin Homepage Section -->
-        <div id="homepage-section" class="section">
+        <?php
+            
+            $active_section = isset($_SESSION['id']) ? 'homepage-section' : 'login-section';
+        ?>
+        <div id="homepage-section" class="section <?php echo $active_section === 'homepage-section' ? 'active' : ''; ?>">
+
             <div class="wrapper">
                 <!-- Left Panel -->
                 <div class="left_panel">
@@ -103,18 +420,18 @@
                     <label><a href="#" onclick="showSection('homepage-section')"><img src="icon/dashboard_icon.png" alt="Dashboard"> Dashboard</a></label>
                     <label><a href="#" onclick="showSection('appointment-section')"><img src="icon/Appointment_icon.png" alt="Appointments"> Appointments</a></label>
                     <label><a href="#" onclick="showSection('patient-section')"><img src="icon/Patient_icon.png" alt="Patients"> Patients</a></label>
-                    <label><a href="#" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
+                    <label><a href="index.php?logout=true" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
                 </div>
     
                 <!-- Right Panel -->
                 <div class="right_panel">
-                    <div id="header">
-                        <div id="info">
-                            <p id="fullname">Carlos Sainz</p>
-                            <p id="status">Patient</p>
-                        </div>
-                        <img id="profile_icon" src="img/default_profile.png" alt="Profile Icon">
-                    </div>
+                <div id="header">
+                <div id="info">
+                    <p id="fullname"><?php echo htmlspecialchars($fullname); ?></p>
+                    <p id="status">Admin</p>
+                </div>
+                <img id="profile_icon" src="<?php echo htmlspecialchars($profile_img); ?>" alt="Profile Icon">
+            </div>
 
                     <div class="main_content">
                         <h1>Dashboard</h1>
@@ -229,7 +546,7 @@
                         <label><a href="#" onclick="showSection('homepage-section')"><img src="icon/dashboard_icon.png" alt="Dashboard"> Dashboard</a></label>
                         <label><a href="#" onclick="showSection('appointment-section')"><img src="icon/Appointment_icon.png" alt="Appointments"> Appointments</a></label>
                         <label><a href="#" onclick="showSection('patient-section')"><img src="icon/Patient_icon.png" alt="Patients"> Patients</a></label>
-                        <label><a href="#" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
+                        <label><a href="index.php?logout=true" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
                     </div>
 
                     <!-- Right Panel -->
@@ -241,62 +558,82 @@
                                 <a href="#" onclick="showRightPanelSection('calendar_view_section')">Calendar View</a>
                             </div>
                             <div id="appointment_info">
-                                <p id="appointment_fullname">Carlos Sainz</p>
-                                <p id="appointment_status">Patient</p>
+                                <p id="appointment_fullname"><?php echo htmlspecialchars($fullname); ?></p>
+                                <p id="appointment_status">Admin</p>
                             </div>
-                            <img id="appointment_profile_icon" src="img/default_profile.png" alt="Profile Icon">
+                            <img id="profile_icon" src="<?php echo htmlspecialchars($profile_img); ?>"alt="Profile Icon">
                         </div>
                         <!-- request sectio-->
                         <div id="request_section" class="section">
 
-                             <!-- Request  sections -->
-                            <div class="main_content">
-                                <h1>Appointment Requests</h1>
-                                <div class="search_filter">
-                                    <input type="text" placeholder="Search appointments" class="search-bar">
-                                    <button class="search_button">SEARCH</button>
-                                    <button class="filter_button">FILTER</button>
-                                </div>
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Patient ID</th>
-                                            <th>Patient Name</th>
-                                            <th>Payment Type</th>
-                                            <th>Payment Status</th>
-                                            <th>Requested Date</th>
-                                            <th>Requested Time</th>
-                                            <th>Date of Request</th>
-                                            <th>Requested Dentist</th>
-                                            <th>Reason for Booking the Appointment</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>PAT00181</td>
-                                            <td>Amelia V. Santos</td>
-                                            <td>Cash on-site</td>
-                                            <td class="actions">
-                                                <button class="status-pendings">Pendings</button>
-                                                <button class="status-approve">Paid</button>
-                                            </td>
-                                            <td>2024-11-02</td>
-                                            <td>09:00 AM - 10:00 AM</td>
-                                            <td>2024-10-20</td>
-                                            <td>Dr. Evan J. Santos</td>
-                                            <td>Regular cleaning</td>
-                                            <td class="actions">
-                                                <button class="approve">Approve</button>
-                                                <button class="move">Move</button>
-                                                <button class="cancel">Cancel</button>
-                                            </td>
-                                        </tr>
-                                        
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <!-- Request sections -->
+            <div class="main_content">
+                <h1>Appointment Requests</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Patient Name</th>
+                            <th>Payment Type</th>
+                            <th>Payment Status</th>
+                            <th>Requested Date</th>
+                            <th>Requested Time</th>
+                            <th>Date of Request</th>
+                            <th>Requested Dentist</th>
+                            <th>Reason for Booking the Appointment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        // Fetch data from appointment_request table
+                        $query = "SELECT * FROM appointment_request";
+                        $result = $connection->query($query);
+
+                        if ($result->num_rows > 0) {
+                            // Loop through and display each row
+                            while ($row = $result->fetch_assoc()) {
+                                echo '<tr>';
+                                echo '<td>' . htmlspecialchars($row['patient_id']) . '</td>';
+                                echo '<td>' . htmlspecialchars($row['patient_name']) . '</td>';
+                                echo '<td>' . htmlspecialchars($row['payment_type']) . '</td>';
+                                echo '<td>' . htmlspecialchars($row['payment_status']) . '</td>';
+                                echo '<td>' . htmlspecialchars($row['requested_date']) . '</td>';
+                                echo '<td>' . htmlspecialchars($row['requested_time']) . '</td>';
+                                echo '<td>' . htmlspecialchars($row['date_of_request']) . '</td>';
+                                echo '<td>' . htmlspecialchars($row['requested_dentist']) . '</td>';
+                                echo '<td>' . htmlspecialchars($row['reason_for_booking']) . '</td>';
+                                echo '<td class="actions">';
+                                echo '<button class="approve" data-patient-id="' . htmlspecialchars($row['patient_id']) . '">Approve</button>';
+                                echo '<button class="cancel" data-patient-id="' . htmlspecialchars($row['patient_id']) . '">Cancel</button>';
+                                echo '</td>';
+                                echo '</tr>';
+                            }
+                        } else {
+                            echo '<tr><td colspan="10">No appointment requests found.</td></tr>';
+                        }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Modal for Cancel Appointment -->
+            <div id="cancelModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal()">&larr; Return</span>
+                    <h2>Cancel Appointment</h2>
+                    <p>Reason for Cancelling</p>
+                    <form id="cancelForm">
+                        <label><input type="radio" name="reason" value="personal"> Personal Reasons</label><br>
+                        <label><input type="radio" name="reason" value="transportation"> Transportation Issues</label><br>
+                        <label><input type="radio" name="reason" value="work"> Work-related Issues</label><br>
+                        <label><input type="radio" name="reason" value="change_of_mind"> Change of Mind</label><br>
+                        <textarea id="additionalDetails" placeholder="Add more details..."></textarea><br>
+                        <button type="button" onclick="submitCancel()">CONFIRM</button>
+                    </form>
+                </div>
+            </div>
+
                         <!-- List View Sectio-->
                         <div id="list_view_section" class="section">
                             <div class="main_content">
@@ -323,28 +660,35 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>PAT0081</td>
-                                            <td>Amelia V. Santos</td>
-                                            <td>Cash on-site</td>
-                                            <td class="actions">
-                                                <button class="status-pendings">Pendings</button>
-                                                <button class="status-approve">Paid</button>
-                                            </td>    
-                                            <td>2024-11-02</td>
-                                            <td>09:00 AM - 10:00 AM</td>
-                                            <td>2024-10-20</td>
-                                            <td>Dr. Evan J. Santos</td>
-                                            <td class="actions">
-                                                <button class="approve">Completed</button>
-                                                <button class="move">Upcomming</button>
-                                                <button class="cancel">Canceled</button>
-                                            </td>
-                                            <td>Regular cleaning</td>
-                                            <td>
-                                                <button class="cancel-btn">Cancel</button>
-                                            </td>
-                                        </tr>
+                                    <?php
+                                        $query = "SELECT * FROM appointment_request";
+                                        $result = $connection->query($query);
+
+                                        if ($result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo '<tr>';
+                                                echo '<td>' . htmlspecialchars($row['patient_id']) . '</td>';
+                                                echo '<td>' . htmlspecialchars($row['patient_name']) . '</td>';
+                                                echo '<td>' . htmlspecialchars($row['payment_type']) . '</td>';
+                                                echo '<td>' . htmlspecialchars($row['payment_status']) . '</td>';
+                                                echo '<td>' . htmlspecialchars($row['requested_date']) . '</td>';
+                                                echo '<td>' . htmlspecialchars($row['requested_time']) . '</td>';
+                                                echo '<td>' . htmlspecialchars($row['date_of_request']) . '</td>';
+                                                echo '<td>' . htmlspecialchars($row['requested_dentist']) . '</td>';
+                                                echo '<td>' . htmlspecialchars($row['reason_for_booking']) . '</td>';
+                                                echo '<td>';
+                                                echo '<form method="POST" action="process_appointment.php">';
+                                                echo '<input type="hidden" name="patient_id" value="' . htmlspecialchars($row['patient_id']) . '">';
+                                                echo '<button type="submit" name="action" value="cancel">Cancel</button>';
+                                                echo '<button type="submit" name="action" value="approve">Approve</button>';
+                                                echo '</form>';
+                                                echo '</td>';
+                                                echo '</tr>';
+                                            }
+                                        } else {
+                                            echo '<tr><td colspan="10">No appointment requests found.</td></tr>';
+                                        }
+                                        ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -371,17 +715,17 @@
                         <label><a href="#" onclick="showSection('homepage-section')"><img src="icon/dashboard_icon.png" alt="Dashboard"> Dashboard</a></label>
                         <label><a href="#" onclick="showSection('appointment-section')"><img src="icon/Appointment_icon.png" alt="Appointments"> Appointments</a></label>
                         <label><a href="#" onclick="showSection('patient-section')"><img src="icon/Patient_icon.png" alt="Patients"> Patients</a></label>
-                        <label><a href="#" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
+                        <label><a href="index.php?logout=true" onclick="showSection('login-section')"><img src="icon/signout_icon.png" alt="Sign Out"> Sign Out</a></label>
                     </div>
         
                     <!-- Right Panel -->
                     <div class="right_panel">
                         <div id="header">
                             <div id="info">
-                                <p id="fullname">Carlos Sainz</p>
-                                <p id="status">Patient</p>
+                                <p id="fullname"><?php echo htmlspecialchars($fullname); ?></p>
+                                <p id="status">Admin</p>
                             </div>
-                            <img id="profile_icon" src="img/default_profile.png" alt="Profile Icon">
+                            <img id="profile_icon" src="<?php echo htmlspecialchars($profile_img); ?>" alt="Profile Icon">
                         </div>
                         <div id="content_panel">
                             <div class="search-bar">
@@ -708,5 +1052,107 @@
                 document.getElementById(id).style.display = "none";
             }
         </script>
+
+        <!---Js for Cancel open modal -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            // Approve and Cancel Event Listeners
+            document.querySelectorAll('.approve, .cancel').forEach(button => {
+                button.addEventListener('click', function() {
+                    const row = button.closest('tr');
+                    const patientId = row.querySelector('td').textContent.trim();
+                    const action = button.classList.contains('approve') ? 'approve' : 'cancel';
+                    
+                    if (action === 'approve') {
+                        submitAction(patientId, 'approve');
+                    } else {
+                        showCancelModal(patientId);
+                    }
+                });
+            });
+
+            // Show Cancel Modal Function
+            function showCancelModal(patientId) {
+                const cancelModal = document.getElementById('cancelModal');
+                cancelModal.style.display = 'flex';
+                cancelModal.setAttribute('data-patient-id', patientId);
+            }
+
+            // Submit Action Function
+            function submitAction(patientId, action, cancelReason = '') {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'index.php', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onload = function() {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.status === 'success') {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert("Error: " + response.message);
+                            console.error(response.message);
+                        }
+                    } catch (e) {
+                        alert("An unexpected error occurred.");
+                        console.error("Response parsing error:", e);
+                    }
+                };
+                xhr.onerror = function() {
+                    alert("Network error occurred");
+                };
+                xhr.send('patient_id=' + encodeURIComponent(patientId) + 
+                        '&action=' + encodeURIComponent(action) + 
+                        '&cancel_reason=' + encodeURIComponent(cancelReason));
+            }
+
+            // Submit Cancel Function
+            window.submitCancel = function() {
+                const patientId = document.getElementById('cancelModal').getAttribute('data-patient-id');
+                const reason = document.querySelector('input[name="reason"]:checked');
+                const additionalDetails = document.getElementById('additionalDetails').value.trim();
+
+                if (!reason) {
+                    alert("Please select a reason for cancellation.");
+                    return;
+                }
+
+                let cancelReason = reason.value;
+                if (additionalDetails) {
+                    cancelReason += ' - ' + additionalDetails;
+                }
+
+                submitAction(patientId, 'cancel', cancelReason);
+                document.getElementById('cancelModal').style.display = 'none';
+            }
+
+            // Close Modal Function
+            window.closeModal = function() {
+                document.getElementById('cancelModal').style.display = 'none';
+            }
+        });
+        </script>
+
+    <script>
+        //   handling cancel action (you can adapt the logic)
+        const cancelButtons = document.querySelectorAll('.cancel-btn');
+
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const patientId = this.closest('tr').querySelector('td').textContent;  // Get Patient ID from the row
+                if (confirm("Are you sure you want to cancel this appointment?")) {
+                    // Send the cancel request to the server
+                    let xhr = new XMLHttpRequest();
+                    xhr.open('POST', '', true);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.onload = function () {
+                        alert(xhr.responseText);  // Show the response
+                        location.reload();  // Reload the page to update the table
+                    };
+                    xhr.send('action=cancel&patient_id=' + patientId + '&cancel_reason=User canceled the appointment');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
